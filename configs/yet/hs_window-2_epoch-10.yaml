@@ -1,0 +1,8 @@
+training_mode: hs
+vocab_size: 30000
+embedding_dim: 200
+window_size: 2
+batch_size: 128
+lr: 0.025
+epochs: 10
+seed: 42
