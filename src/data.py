@@ -87,12 +87,13 @@ def load_google_analogy(path):
     return analogies
 
 class SkipGramNSIterableDataset(IterableDataset):
-    def __init__(self, file_path, word2idx, word_freq, device="cuda", neg_sample_size=5, window_size=2, subsample_t=1e-3):
+    def __init__(self, file_path, word2idx, word_freq, device="cuda", neg_sample_size=5, window_size=2, enable_subsampling=True, subsample_t=1e-3):
         super().__init__()
         self.file_path = file_path
         self.word2idx = word2idx
         self.window_size = window_size
         self.neg_sample_size = neg_sample_size
+        self.enable_subsampling = enable_subsampling
         self.subsample_t = subsample_t
         self.vocab_size = len(word2idx)
         self.idx2word = {i: w for w, i in word2idx.items()} # 편의를 위해 추가
@@ -149,12 +150,13 @@ class SkipGramNSIterableDataset(IterableDataset):
             center_idx = self.token_indices[current_idx] # mmap 배열에서 인덱스 접근
             center_token = self.idx2word[center_idx]
             
-            # 서브샘플링 확률
-            f = self.freqs.get(center_token, 0)
-            p_drop = 1 - ((self.subsample_t / f) ** 0.5) if f > 0 else 1
-            if random.random() < p_drop: 
-                current_idx += 1 # 드롭된 경우에도 인덱스 증가
-                continue 
+            # 서브샘플링 확률 (config로 제어)
+            if self.enable_subsampling:
+                f = self.freqs.get(center_token, 0)
+                p_drop = 1 - ((self.subsample_t / f) ** 0.5) if f > 0 else 1
+                if random.random() < p_drop: 
+                    current_idx += 1 # 드롭된 경우에도 인덱스 증가
+                    continue 
 
             # 2. 가변 윈도우 설정
             actual_window = random.randint(1, self.window_size)
@@ -282,11 +284,12 @@ class SkipGramHSIterableDataset(IterableDataset):
     Hierarchical Softmax 학습을 위한 Skip-Gram Iterable Dataset.
     mmap된 토큰 인덱스 파일을 스트리밍하여 (center_idx, path, code) 쌍을 생성합니다.
     """
-    def __init__(self, file_path, word2idx, word_freq, path_table, code_table, window_size=2, subsample_t=1e-3):
+    def __init__(self, file_path, word2idx, word_freq, path_table, code_table, window_size=2, enable_subsampling=True, subsample_t=1e-3):
         super().__init__()
         self.file_path = file_path
         self.word2idx = word2idx
         self.window_size = window_size
+        self.enable_subsampling = enable_subsampling
         self.subsample_t = subsample_t
         self.vocab_size = len(word2idx)
         self.idx2word = {i: w for w, i in word2idx.items()}
@@ -342,12 +345,13 @@ class SkipGramHSIterableDataset(IterableDataset):
             center_idx = self.token_indices[current_idx] 
             center_token = self.idx2word[center_idx]
             
-            # 서브샘플링 확률
-            f = self.freqs.get(center_token, 0)
-            p_drop = 1 - ((self.subsample_t / f) ** 0.5) if f > 0 else 1
-            if random.random() < p_drop: 
-                current_idx += 1 
-                continue 
+            # 서브샘플링 확률 (config로 제어)
+            if self.enable_subsampling:
+                f = self.freqs.get(center_token, 0)
+                p_drop = 1 - ((self.subsample_t / f) ** 0.5) if f > 0 else 1
+                if random.random() < p_drop: 
+                    current_idx += 1 
+                    continue 
 
             # 2. 가변 윈도우 설정
             actual_window = random.randint(1, self.window_size)
@@ -409,7 +413,9 @@ def get_dataloader(file_path, config, word2idx, word_freq, mode="ns", path_table
             word_freq=word_freq, # 👈 빈도수 전달,
             device="cuda",
             neg_sample_size=config.get("neg_sample_size", 5),
-            window_size=config["window_size"]
+            window_size=config["window_size"],
+            enable_subsampling=config.get("enable_subsampling", True),
+            subsample_t=config.get("subsample_t", 1e-3)
         )
         collate_fn = None 
         
@@ -422,7 +428,9 @@ def get_dataloader(file_path, config, word2idx, word_freq, mode="ns", path_table
             word_freq=word_freq,
             path_table=path_table,
             code_table=code_table,
-            window_size=config["window_size"]
+            window_size=config["window_size"],
+            enable_subsampling=config.get("enable_subsampling", True),
+            subsample_t=config.get("subsample_t", 1e-3)
         )
         collate_fn = collate_fn_hs
     else:

@@ -7,3 +7,5 @@ lr: 0.001
 epochs: 1
 seed: 456
 neg_sample_size: 5
+enable_subsampling: true
+subsample_t: 1e-3
