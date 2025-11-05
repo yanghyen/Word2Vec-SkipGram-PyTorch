@@ -1,7 +1,7 @@
 import pickle
 import os
 
-VOCAB_PATH = os.path.join("data/pretrain", "vocab_data.pkl")
+VOCAB_PATH = os.path.join("runs", "vocab_ns.pkl")
 
 try:
     with open(VOCAB_PATH, "rb") as f:

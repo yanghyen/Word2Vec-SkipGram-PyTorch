@@ -159,28 +159,32 @@ class SkipGramNSIterableDataset(IterableDataset):
             # 2. 가변 윈도우 설정
             actual_window = random.randint(1, self.window_size)
             
-            # 3. 주변 단어(Context) 선택
+            # 3. 주변 단어(Context) 수집 - 먼저 모든 context를 모음
             # 문맥 인덱스 범위 계산 (현재 워커의 범위(start_idx, end_idx)를 벗어나지 않도록 제한)
             left_context_start = max(0, current_idx - actual_window)
             right_context_end = min(self.total_tokens, current_idx + actual_window + 1)
             
+            contexts = []
             for context_token_idx in range(left_context_start, right_context_end):
                 if context_token_idx == current_idx:
                     continue
-                    
-                context_idx = self.token_indices[context_token_idx]
-
-                # 4. 네거티브 샘플링 (변경 없음)
-                neg_samples = torch.multinomial(
+                contexts.append(self.token_indices[context_token_idx])
+            
+            # 4. 배치 단위로 한 번에 네거티브 샘플링 (🚀 성능 개선)
+            if contexts:
+                num_contexts = len(contexts)
+                # 모든 context에 대한 negative samples를 한 번에 생성
+                all_neg_samples = torch.multinomial(
                     self.sample_probs,
-                    self.neg_sample_size,
+                    self.neg_sample_size * num_contexts,
                     replacement=True
-                )
+                ).reshape(num_contexts, self.neg_sample_size)
                 
                 # 5. 학습 쌍 Yield
-                yield torch.tensor(center_idx, dtype=torch.long), \
-                      torch.tensor(context_idx, dtype=torch.long), \
-                      neg_samples
+                for i, context_idx in enumerate(contexts):
+                    yield torch.tensor(center_idx, dtype=torch.long), \
+                          torch.tensor(context_idx, dtype=torch.long), \
+                          all_neg_samples[i]
                       
             current_idx += 1 # 중심 단어 인덱스 증가 
                           
