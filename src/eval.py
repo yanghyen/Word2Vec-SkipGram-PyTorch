@@ -40,7 +40,7 @@ embedding_dim = config["embedding_dim"]
 print(f"📚 Loaded vocab: {vocab_size} words")
 
 mode = config.get("training_mode", "ns").lower()  
-model = SkipGram(vocab_size, embedding_dim).to(device)
+model = SkipGram(vocab_size, embedding_dim, mode=mode).to(device)
 
 checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=True)
 model.load_state_dict(checkpoint["model_state_dict"])

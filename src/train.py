@@ -98,7 +98,7 @@ print("✅ Indices validation passed")
 
 # ----------------- Model & Optimizer -----------------
 embedding_dim = config["embedding_dim"]
-model = SkipGram(vocab_size, embedding_dim)
+model = SkipGram(vocab_size, embedding_dim, mode=config["training_mode"])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
@@ -202,7 +202,7 @@ for epoch in range(start_epoch, num_epochs + 1):
         
         # ----------------- Step Checkpoint -----------------
         if current_step % checkpoint_every == 0:
-            ckpt_path = os.path.join(checkpoint_dir, f"{config['training_mode']}_step-{current_step}.pth")
+            ckpt_path = os.path.join(checkpoint_dir, f"{config['training_mode']}_window-{config['window_size']}_sub-{config['enable_subsampling']}_seed-{config['seed']}_step-{current_step}.pth")
             torch.save({
                 "epoch": epoch,
                 "current_step": current_step,
@@ -229,7 +229,7 @@ for epoch in range(start_epoch, num_epochs + 1):
     })
     
     # ----------------- Epoch Checkpoint -----------------
-    ckpt_path = os.path.join(checkpoint_dir, f"{config['training_mode']}_epoch-{epoch}.pth")
+    ckpt_path = os.path.join(checkpoint_dir, f"{config['training_mode']}_window-{config['window_size']}_sub-{config['enable_subsampling']}_seed-{config['seed']}.pth")
     torch.save({
         "epoch": epoch,
         "current_step": current_step,
@@ -242,7 +242,7 @@ for epoch in range(start_epoch, num_epochs + 1):
     print(f"💾 Saved checkpoint for epoch {epoch}")
 
 # ----------------- Metrics CSV 저장 -----------------
-csv_filename = f"metrics_{config['training_mode']}_window-{config['window_size']}_seed-{config['seed']}.csv"
+csv_filename = f"metrics_{config['training_mode']}_window-{config['window_size']}_sub-{config['enable_subsampling']}_seed-{config['seed']}.csv"
 csv_path = os.path.join("runs/metrics", csv_filename)
 os.makedirs("runs/metrics/", exist_ok=True)
 if metrics_log:

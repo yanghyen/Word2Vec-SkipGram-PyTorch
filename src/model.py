@@ -4,18 +4,22 @@ import torch.nn.functional as F
 
 
 class SkipGram(nn.Module):
-    def __init__(self, vocab_size, embedding_dim):
+    def __init__(self, vocab_size, embedding_dim, mode="ns"):
         super().__init__()
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
-
-        self.in_embeddings = nn.Embedding(vocab_size, embedding_dim)            # 중심단어 벡터 저장
-        # self.out_embeddings = nn.Embedding(vocab_size, embedding_dim)         # 허프만 트리 돌 때를 위해 늘림
-        self.out_embeddings = nn.Embedding(vocab_size * 2 - 1, embedding_dim)   # 주변단어 벡터 저장
+        self.mode = mode
+        self.in_embeddings = nn.Embedding(vocab_size, embedding_dim)            
+        
+        if mode == "hs":
+            out_vocab_size = vocab_size * 2 - 1
+        else:
+            out_vocab_size = vocab_size
+            
+        self.out_embeddings = nn.Embedding(out_vocab_size, embedding_dim)       # 주변단어/노드 벡터 저장
 
         init_range = 0.5 / embedding_dim                                        # 초기화 전략: 임베딩 행렬의 값을 [-init_range, init_range] 범위 내의 랜덤한 값으로 초기화
         nn.init.uniform_(self.in_embeddings.weight, -init_range, init_range)    
-        # nn.init.constant_(self.out_embeddings.weight, 0)
         nn.init.uniform_(self.out_embeddings.weight, -init_range, init_range)   
 
     def forward_ns(self, center_idx, context_idx, neg_idx):

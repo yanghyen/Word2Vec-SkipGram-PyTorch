@@ -94,7 +94,7 @@ class SkipGramNSIterableDataset(IterableDataset):
         self.window_size = window_size
         self.neg_sample_size = neg_sample_size
         self.enable_subsampling = enable_subsampling
-        self.subsample_t = subsample_t
+        self.subsample_t = float(subsample_t)  # 문자열일 수 있으므로 float으로 변환
         self.vocab_size = len(word2idx)
         self.idx2word = {i: w for w, i in word2idx.items()} # 편의를 위해 추가
         
@@ -290,7 +290,7 @@ class SkipGramHSIterableDataset(IterableDataset):
         self.word2idx = word2idx
         self.window_size = window_size
         self.enable_subsampling = enable_subsampling
-        self.subsample_t = subsample_t
+        self.subsample_t = float(subsample_t)  # 문자열일 수 있으므로 float으로 변환
         self.vocab_size = len(word2idx)
         self.idx2word = {i: w for w, i in word2idx.items()}
         
