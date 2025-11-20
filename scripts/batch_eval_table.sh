@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 배치 평가 테이블 생성 스크립트
-# runs/eval/go의 모든 .pth 파일들을 평가하여 하나의 CSV 테이블로 저장
+# runs/checkpoints_ns와 runs/checkpoints_hs의 모든 .pth 파일들을 평가하여 하나의 CSV 테이블로 저장
 
 # 사용법:
 # scripts/batch_eval_table.sh [output_file]
@@ -9,7 +9,7 @@
 OUTPUT_FILE=${1:-"results/batch_evaluation_table.csv"}
 
 echo "🚀 배치 평가 시작..."
-echo "📁 체크포인트 디렉토리: runs/eval/go"
+echo "📁 체크포인트 디렉토리: runs/checkpoints_ns, runs/checkpoints_hs"
 echo "💾 출력 파일: $OUTPUT_FILE"
 
 # 가상환경 활성화 (conda 환경 사용)

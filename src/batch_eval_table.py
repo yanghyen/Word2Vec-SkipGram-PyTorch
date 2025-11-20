@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-배치 평가 테이블 생성 스크립트: runs/eval/go의 모든 .pth 파일들을 평가하여 
+배치 평가 테이블 생성 스크립트: runs/checkpoints_ns와 runs/checkpoints_hs의 모든 .pth 파일들을 평가하여 
 파일명을 컬럼으로 하는 하나의 CSV 테이블로 저장합니다.
 
 사용법:
-    python scripts/batch_eval_table.py [--output results/batch_evaluation_table.csv]
+    python src/batch_eval_table.py [--output results/batch_evaluation_table.csv]
+    python src/batch_eval_table.py --checkpoint_dir runs/checkpoints_ns [--output results/batch_evaluation_table.csv]
 """
 
 import os
@@ -382,7 +383,7 @@ def evaluate_single_model(checkpoint_path, config_path):
 
 def main():
     parser = argparse.ArgumentParser(description="배치 평가 테이블 생성")
-    parser.add_argument("--checkpoint_dir", default="runs/eval/go", help="체크포인트 파일들이 있는 디렉토리")
+    parser.add_argument("--checkpoint_dir", default=None, help="체크포인트 파일들이 있는 디렉토리 (지정하지 않으면 runs/checkpoints_ns와 runs/checkpoints_hs에서 자동 검색)")
     parser.add_argument("--configs_dir", default="configs", help="config 파일들이 있는 디렉토리")
     parser.add_argument("--output", default="results/batch_evaluation_table.csv", help="출력 CSV 파일 경로")
     
@@ -392,10 +393,23 @@ def main():
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     
     # .pth 파일들 찾기
-    checkpoint_files = glob.glob(os.path.join(args.checkpoint_dir, "*.pth"))
-    checkpoint_files.sort()
-    
-    print(f"📁 {len(checkpoint_files)}개의 체크포인트 파일을 찾았습니다.")
+    if args.checkpoint_dir:
+        # 특정 디렉토리에서 찾기
+        checkpoint_files = glob.glob(os.path.join(args.checkpoint_dir, "*.pth"))
+        checkpoint_files.sort()
+        print(f"📁 지정된 디렉토리에서 {len(checkpoint_files)}개의 체크포인트 파일을 찾았습니다: {args.checkpoint_dir}")
+    else:
+        # runs/checkpoints_ns와 runs/checkpoints_hs에서 자동으로 찾기
+        checkpoint_files = []
+        checkpoint_dirs = ["runs/checkpoints_ns", "runs/checkpoints_hs"]
+        for ckpt_dir in checkpoint_dirs:
+            if os.path.exists(ckpt_dir):
+                files = glob.glob(os.path.join(ckpt_dir, "*.pth"))
+                checkpoint_files.extend(files)
+                if files:
+                    print(f"📁 {ckpt_dir}에서 {len(files)}개의 체크포인트 파일을 찾았습니다.")
+        checkpoint_files.sort()
+        print(f"📁 총 {len(checkpoint_files)}개의 체크포인트 파일을 찾았습니다.")
     
     # 각 모델 평가
     all_results = {}

@@ -201,15 +201,15 @@ for epoch in range(start_epoch, num_epochs + 1):
         })
         
         # ----------------- Step Checkpoint -----------------
-        if current_step % checkpoint_every == 0:
-            ckpt_path = os.path.join(checkpoint_dir, f"{config['training_mode']}_window-{config['window_size']}_sub-{config['enable_subsampling']}_seed-{config['seed']}_step-{current_step}.pth")
-            torch.save({
-                "epoch": epoch,
-                "current_step": current_step,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-            }, ckpt_path)
-            print(f"💾 Saved intermediate checkpoint at step {current_step}")
+        # if current_step % checkpoint_every == 0:
+        #     ckpt_path = os.path.join(checkpoint_dir, f"{config['training_mode']}_window-{config['window_size']}_sub-{config['enable_subsampling']}_seed-{config['seed']}_step-{current_step}.pth")
+        #     torch.save({
+        #         "epoch": epoch,
+        #         "current_step": current_step,
+        #         "model_state_dict": model.state_dict(),
+        #         "optimizer_state_dict": optimizer.state_dict(),
+        #     }, ckpt_path)
+        #     print(f"💾 Saved intermediate checkpoint at step {current_step}")
 
     progress_bar.close()
     

@@ -1,9 +1,0 @@
-training_mode: ns
-vocab_size: 30000
-embedding_dim: 200
-window_size: 5
-batch_size: 256
-lr: 0.025
-epochs: 5
-seed: 42
-neg_sample_size: 3

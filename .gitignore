@@ -64,5 +64,12 @@ Desktop.ini
 *.pkl
 *.pth
 
+word_similarity/
 pretrain/
-word_similarity
+results/
+eval/
+
+original_paper_error_analysis.py
+create_summary_report.py
+error_analysis.py
+analogy_test.ipynb
